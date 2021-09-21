@@ -1,13 +1,13 @@
 module Admin
     class ProductSavingService
-        class NotSavedProductError < StandartError; and
+        class NotSavedProductError < StandardError; end
 
-        attr_render :product, :errors
+        attr_reader :product, :errors
         
         def initialize(params, product = nil)
            params = params.deep_symbolize_keys
-           @product_params = params.reject { |key| key == :produtable_attibures }
-           @product_params = params[:productable_atributes] || {}
+           @product_params = params.reject { |key| key == :productable_attributes }
+           @productable_params = params[:productable_attributes] || {}
            @errors = {}
            @product = product || Product.new
         end
@@ -27,8 +27,11 @@ module Admin
         end
 
         def save!
-             save_record!(@product.productable) if @product.productable.presence?
+             save_record!(@product.productable) if @product.productable.present?
              save_record!(@product)
+             raise NotSavedProductError if @errors.present?
+            rescue => e
+                 raise NotSavedProductError
         end
 
         def save_record!(record)
